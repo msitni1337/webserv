@@ -456,7 +456,7 @@ void Request::setVersion(const std::string& version)
     float http_version;
     if (std::sscanf(version.c_str() + 5, "%f", &http_version) != 1)
         throw RequestException(HttpStatus(STATUS_BAD_REQUEST));
-    if (http_version != 1.1)
+    if (http_version != 1.1f)
         throw RequestException(HttpStatus(STATUS_HTTP_VERSION_NOT_SUPPORTED));
     _http_version = version;
 }
