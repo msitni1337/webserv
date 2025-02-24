@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: msitni <msitni@student.42.fr>              +#+  +:+       +#+        */
+/*   By: simo <simo@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/20 23:27:14 by msitni1337        #+#    #+#             */
-/*   Updated: 2025/01/29 15:41:57 by msitni           ###   ########.fr       */
+/*   Updated: 2025/02/24 13:10:22 by simo             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,6 @@ public:
 private:
     void listen_on_addr(const sockaddr_in& _listen_addr);
     void AcceptNewPeerOnSocket(int socket_fd);
-    void HandlePeerEPOLLOUT(const epoll_event& ev, ServerClient& client);
 
 public:
     static Server& GetInstance();

@@ -273,10 +273,10 @@ This is a break down of `Webserv`'s classes in a simple ordering which will make
   Simple abstract class serving as interface between the event sender class `IOMultiplexer` and the receiver classes `Server` and `ServerClient`. All child classes inheriting from this interface should implement the following pure virtual functions: `virtual void AIOEventListener::ConsumeEvent(const epoll_event ev)` which notify the subscriber class that the fd listned for is ready for the specified operations. And `virtual void Terminate()` which notify subscriber classes to gracefully terminate and free up all resources in case of a system error.
 
 * `Server`:<br>
-  Description soon.
+  This class subscribes to `IOMultiplexer` event loop for each address socket fd parsed from the listen directive in the config file. This class handles incoming new connections and spawn a new `ServerClient` instance from the pool of ServerClient instances. 
 
 * `ServerClient`:<br>
-  Description soon.  
+  This class subscribes to `IOMultiplexer` event loop to handle `recv/send` calls between the client and `Webserv`. In order to facilitate the receiving of the client request and the sending of it's response, `ServerClient` class uses `Request` class to parse the received client data then builds either a `Response` class or a `ResponseCGI` class depending on the parsed request which will then use to send the response data to the client.
 
 * `Request`:<br>
   Description soon.
