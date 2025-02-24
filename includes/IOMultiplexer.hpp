@@ -6,7 +6,7 @@
 /*   By: msitni <msitni@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/22 17:31:05 by msitni1337        #+#    #+#             */
-/*   Updated: 2025/01/29 09:24:21 by msitni           ###   ########.fr       */
+/*   Updated: 2025/02/24 04:33:26 by msitni           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ public:
 
 public:
     static IOMultiplexer& GetInstance();
-    void                  AddEvent(epoll_event ev, int fd);
+    void                  AddEvent(AIOEventListener* listener, epoll_event ev);
     void                  RemoveEvent(epoll_event ev, int fd);
     void                  StartEventLoop();
     void                  Terminate();

@@ -62,12 +62,12 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#higher-architecture">Higher architecture</a></li>
     <li><a href="#config-file">Config file</a></li>
       <ul>
         <li><a href="#config-file-overview">Config file overview</a></li>
         <li><a href="#directives-Description">Directives Description</a></li>
       </ul>
-    <li><a href="#higher-architecture">Higher architecture</a></li>
     <li><a href="#classes-description">Classes description</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -123,8 +123,17 @@ This is how you can build & setup `Webserv` on your machine to serve your websit
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+## Higher architecture
 
-<!-- USAGE EXAMPLES -->
+[![Event driven architecture][classes-flowchart]]
+
+`Webserv` uses <b>Event-driven architecture</b> to acheive flexibility of code flow while making `Webserv` able to handle the maximum traffic possible. To do so, `Webserv` needs to solve the blocking problem of calls to `read/write/recv/send` when used on a blocking file descriptors (fd) such as `pipes` or `sockets`. These special files descriptors in constrast to regular one (fds of local files for example) blocks the execution of the code until the fd is ready. inherently they are not ready to read or write by default, calling `recv()` for example on a file descriptor linked to the end-user (client) socket will make the server halt until DATA is ready to be received from the client. `Webserv` solves this problem by routing all traffic through the `epoll` family functions learn more about them <a href="https://man7.org/linux/man-pages/man7/epoll.7.html">here</a> or `man epoll`.<br>
+Notably like shown in the flowchart, `Webserv` uses the class `IOMultiplixer` as a gateway for everyone to subscribe to it's event loop by providing a blocking file descriptor to listen for. By inheriting from the interface `AIOEventListener` classes can use this interface to hook into `IOMultiplixer` API. This abstracts away the low-level `epoll` API functions and makes `Webserv`'s code more flexible to work with. Now any class who want to route it's `read/write/recv/send` calls through epoll for efficent operations can do so seamlessly through `IOMultiplixer` new API. Indeed `Webserv` uses this concept to make The `Server` class listen on sockets and handle new connection, in the other hand each new connection uses a pool of `ServerClient`s to spawn an instance of `ServerClient` that can efficently handle the client requests, all while making sure all the blocking operations are routed through `IOMultiplixer` to make sure `Webserv` is ready to do the selected operation and garantee maximum effeciency and speed.<br>
+This approach also takes in mind upcoming features development which can be easily made to the system as this method allows many Classes to plug into the eco-system of the `IOMultiplixer`.
+You can learn more about `Webserv`'s classes in the section <a href="#classes-description">Classes description</a>.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 ## Config file
 
 ### Config file overview
@@ -252,20 +261,31 @@ Here is a description of every directive in alphabetical order that can be inclu
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
-<!-- ROADMAP -->
-## Higher architecture
-
-[![Event driven architecture][classes-flowchart]]
-
-`Webserv` uses <b>Event-driven architecture</b> to acheive flexibility of code flow while making `Webserv` able to handle the maximum traffic possible. To do so, `Webserv` needs to solve the blocking problem of calls to `read/write/recv/send` when used on a blocking file descriptors (fd) such as `pipes` or `sockets`. These special files descriptors in constrast to regular one (fds of local files for example) blocks the execution of the code until the fd is ready. inherently they are not ready to read or write by default, calling `recv()` for example on a file descriptor linked to the end-user (client) socket will make the server halt until DATA is ready to be received from the client. `Webserv` solves this problem by routing all traffic through the `epoll` family functions learn more about them <a href="https://man7.org/linux/man-pages/man7/epoll.7.html">here</a> or `man epoll`.<br>
-Notably like shown in the flowchart, `Webserv` uses the class `IOMultiplixer` as a gateway for everyone to subscribe to it's event loop by providing a blocking file descriptor to listen for. By inheriting from the interface `AIOEventListener` classes can use this interface to hook into `IOMultiplixer` API. This abstracts away the low-level `epoll` API functions and makes `Webserv`'s code more flexible to work with. Now any class who want to route it's `read/write/recv/send` calls through epoll for efficent operations can do so seamlessly through `IOMultiplixer` new API. Indeed `Webserv` uses this concept to make The `Server` class listen on sockets and handle new connection, in the other hand each new connection uses a pool of `ServerClient`s to spawn an instance of `ServerClient` that can efficently handle the client requests, all while making sure all the blocking operations are routed through `IOMultiplixer` to make sure `Webserv` is ready to do the selected operation and garantee maximum effeciency and speed.<br>
-This approach also takes in mind upcoming features development which can be easily made to the system as this method allows many Classes to plug into the eco-system of the `IOMultiplixer`.
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
 ## Classes description
+
+This is a break down of `Webserv`'s classes in a simple ordering which will make you better understand the code:
+
+* `IOMultiplexer`:<br>
+  This class provides an abstraction of the low-level `epoll` api. It implements the core event loop that drives the whole server. Any class that inherit from `AIOEventListener` interface can subscribe to `IOMultiplexer` through the function `void IOMultiplexer::AddEvent(AIOEventListener* listener, epoll_event ev)`.
+  Then when IOMultiplexer receives an events on the specified fd provided in the union `ev.data.fd` marking the file descriptor is ready for the operations specified in the `ev.events` flag, the event will be then forwarded to the subscribed listener pointer class through calling the virtual function `virtual void AIOEventListener::ConsumeEvent(const epoll_event ev)` it's implementation depends on the subscribed class and it's role within the whole code flow of `Webserv`.
+
+* `AIOEventListener`:<br>
+  Simple abstract class serving as interface between the event sender class `IOMultiplexer` and the receiver classes `Server` and `ServerClient`. All child classes inheriting from this interface should implement the following pure virtual functions: `virtual void AIOEventListener::ConsumeEvent(const epoll_event ev)` which notify the subscriber class that the fd listned for is ready for the specified operations. And `virtual void Terminate()` which notify subscriber classes to gracefully terminate and free up all resources in case of a system error.
+
+* `Server`:<br>
+  Description soon.
+
+* `ServerClient`:<br>
+  Description soon.  
+
+* `Request`:<br>
+  Description soon.
+
+* `Response`:<br>
+  Description soon.
+
+* `ResponseCGI`:<br>
+  Description soon.
 
 <!-- CONTRIBUTING -->
 ## Contributing

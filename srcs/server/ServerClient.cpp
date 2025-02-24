@@ -6,7 +6,7 @@
 /*   By: msitni <msitni@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/22 11:55:35 by msitni            #+#    #+#             */
-/*   Updated: 2025/02/03 14:14:05 by msitni           ###   ########.fr       */
+/*   Updated: 2025/02/24 04:32:01 by msitni           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,11 @@ ServerClient::~ServerClient() {}
 void ServerClient::BindToClientSocket()
 {
     assert(_is_started == false);
-    _epoll_ev.data.ptr = this;
-    _epoll_ev.events   = EPOLLIN | EPOLLOUT;
+    _epoll_ev.data.fd = _client_socket_fd;
+    _epoll_ev.events  = EPOLLIN | EPOLLOUT;
     try
     {
-        IOMultiplexer::GetInstance().AddEvent(_epoll_ev, _client_socket_fd);
+        IOMultiplexer::GetInstance().AddEvent(this, _epoll_ev);
         std::cout << "<<<< New peer accepted on fd " << _client_socket_fd << ".\n";
         _is_started = true;
     }
@@ -171,9 +171,9 @@ fetch_next_response:
 void ServerClient::QueueCGIResponse(int output_pipe_fd, ResponseCGI* response)
 {
     epoll_event ev;
-    ev.events   = EPOLLIN | EPOLLHUP;
-    ev.data.ptr = this;
-    IOMultiplexer::GetInstance().AddEvent(ev, output_pipe_fd);
+    ev.events  = EPOLLIN | EPOLLHUP;
+    ev.data.fd = output_pipe_fd;
+    IOMultiplexer::GetInstance().AddEvent(this, ev);
     _cgi_responses.insert(std::pair<int, ResponseCGI*>(output_pipe_fd, response));
     std::cout << ">>>> IOMultiplexer is listening on CGI pipe fd: " << output_pipe_fd
               << " for client fd: " << _client_socket_fd << std::endl;

@@ -6,7 +6,7 @@
 /*   By: msitni <msitni@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/22 17:30:28 by msitni1337        #+#    #+#             */
-/*   Updated: 2025/02/03 14:09:29 by msitni           ###   ########.fr       */
+/*   Updated: 2025/02/24 04:27:35 by msitni           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,15 +35,13 @@ const int& IOMultiplexer::GetEpollFd() const
 {
     return _epoll_fd;
 }
-void IOMultiplexer::AddEvent(epoll_event ev, int fd)
+void IOMultiplexer::AddEvent(AIOEventListener* listener, epoll_event ev)
 {
-    std::map<int, AIOEventListener*>::iterator it = _listeners.find(fd);
+    std::map<int, AIOEventListener*>::iterator it = _listeners.find(ev.data.fd);
     if (it != _listeners.end())
         throw IOMultiplexerException("AddEvent() : Event listener already added.");
-    AIOEventListener* listener = (AIOEventListener*)ev.data.ptr;
-    _listeners.insert(std::pair<int, AIOEventListener*>(fd, listener));
-    ev.data.fd = fd;
-    if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, fd, &ev) == -1)
+    _listeners.insert(std::pair<int, AIOEventListener*>(ev.data.fd, listener));
+    if (epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, ev.data.fd, &ev) == -1)
         throw IOMultiplexerException("epoll_ctl() failed.");
 }
 void IOMultiplexer::RemoveEvent(epoll_event ev, int fd)

@@ -6,7 +6,7 @@
 /*   By: msitni <msitni@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/20 23:26:41 by msitni1337        #+#    #+#             */
-/*   Updated: 2025/01/29 18:33:20 by msitni           ###   ########.fr       */
+/*   Updated: 2025/02/24 04:30:15 by msitni           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,7 @@
 
 Server::Server(const std::vector<ServerConfig>& config) : _config(config), _is_started(false)
 {
-    _listen_socket_ev.events   = EPOLLIN;
-    _listen_socket_ev.data.ptr = this;
+    _listen_socket_ev.events = EPOLLIN;
 }
 Server::Server(const Server& server) : AIOEventListener(server)
 {
@@ -30,7 +29,8 @@ Server::~Server()
 {
     Terminate();
 }
-Server& Server::GetInstance() {
+Server& Server::GetInstance()
+{
     static Server server(Config::getInstance().getServers());
     return server;
 }
@@ -63,7 +63,8 @@ void Server::listen_on_addr(const sockaddr_in& _listen_addr)
         close(_listen_socket_fd), throw ServerException("listen(): failed.");
     try
     {
-        IOMultiplexer::GetInstance().AddEvent(_listen_socket_ev, _listen_socket_fd);
+        _listen_socket_ev.data.fd = _listen_socket_fd;
+        IOMultiplexer::GetInstance().AddEvent(this, _listen_socket_ev);
     }
     catch (const std::exception& e)
     {
