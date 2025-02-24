@@ -256,7 +256,11 @@ Here is a description of every directive in alphabetical order that can be inclu
 <!-- ROADMAP -->
 ## Higher architecture
 
+[![Event driven architecture][classes-flowchart]]
 
+`Webserv` uses <b>Event-driven architecture</b> to acheive flexibility of code flow while making `Webserv` able to handle the maximum traffic possible. To do so, `Webserv` needs to solve the blocking problem of calls to `read/write/recv/send` when used on a blocking file descriptors (fd) such as `pipes` or `sockets`. These special files descriptors in constrast to regular one (fds of local files for example) blocks the execution of the code until the fd is ready. inherently they are not ready to read or write by default, calling `recv()` for example on a file descriptor linked to the end-user (client) socket will make the server halt until DATA is ready to be received from the client. `Webserv` solves this problem by routing all traffic through the `epoll` family functions learn more about them <a href="https://man7.org/linux/man-pages/man7/epoll.7.html">here</a> or `man epoll`.<br>
+Notably like shown in the flowchart, `Webserv` uses the class `IOMultiplixer` as a gateway for everyone to subscribe to it's event loop by providing a blocking file descriptor to listen for. By inheriting from the interface `AIOEventListener` classes can use this interface to hook into `IOMultiplixer` API. This abstracts away the low-level `epoll` API functions and makes `Webserv`'s code more flexible to work with. Now any class who want to route it's `read/write/recv/send` calls through epoll for efficent operations can do so seamlessly through `IOMultiplixer` new API. Indeed `Webserv` uses this concept to make The `Server` class listen on sockets and handle new connection, in the other hand each new connection uses a pool of `ServerClient`s to spawn an instance of `ServerClient` that can efficently handle the client requests, all while making sure all the blocking operations are routed through `IOMultiplixer` to make sure `Webserv` is ready to do the selected operation and garantee maximum effeciency and speed.<br>
+This approach also takes in mind upcoming features development which can be easily made to the system as this method allows many Classes to plug into the eco-system of the `IOMultiplixer`.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -331,3 +335,4 @@ Project Link: [https://github.com/msitni1337/webserv](https://github.com/msitni1
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/msitni
 [product-screenshot]: images/screenshot.png
+[classes-flowchart]: images/classes_flowchart.png
